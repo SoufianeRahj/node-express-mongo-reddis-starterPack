@@ -1,6 +1,7 @@
 const catchAsync = require("./../utils/CatchAsync.js");
 const AppError = require("./../utils/AppError.js");
 const APIFeatures = require("./../utils/APIFeatures.js");
+const { clearHash } = require("./../cache/cacheUtils");
 
 exports.getAll = (Model) =>
   catchAsync(async (req, res, next) => {
@@ -15,8 +16,10 @@ exports.getAll = (Model) =>
       .limitFields()
       .paginate();
 
+    const currentQuery = features.query.cache();
+
     // EXECUTING THE QUERY
-    const doc = await features.query; // chain with .explain() to analyze/optimise read queries
+    const doc = await currentQuery; // chain with .explain() to analyze/optimise read queries
 
     res.status(200).json({
       status: "success",
@@ -34,6 +37,7 @@ exports.getOne = (Model, populateOptions) =>
 
     let query = Model.findById(id);
     if (populateOptions) query = query.populate(populateOptions);
+    query = query.cache();
     const doc = await query;
 
     // case where the doc is null
@@ -53,7 +57,7 @@ exports.getOne = (Model, populateOptions) =>
 exports.createOne = (Model) =>
   catchAsync(async (req, res, next) => {
     const doc = await Model.create(req.body);
-
+    clearHash("");
     // jsend format
     res.status(201).json({
       status: "success",
@@ -75,6 +79,7 @@ exports.updateOne = (Model) =>
       return next(new AppError("No document found with that Id", 404));
     }
 
+    clearHash("");
     res.status(201).json({
       status: "success",
       data: {
@@ -91,6 +96,7 @@ exports.deleteOne = (Model) =>
       return next(new AppError("No document found with that Id", 404));
     }
 
+    clearHash("");
     res.status(204).json({
       status: "success",
       data: null,

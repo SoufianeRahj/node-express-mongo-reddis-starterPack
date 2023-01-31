@@ -14,6 +14,8 @@ dotenv.config({ path: "./config.env" });
 const mongoose = require("mongoose");
 const app = require("./app.js");
 
+require("./cache/cacheUtils");
+
 // MONGODB Connexion
 let url = process.env.DB_URL.replace("<password>", process.env.DB_Password);
 url = url.replace("<username>", process.env.DB_USERNAME);
